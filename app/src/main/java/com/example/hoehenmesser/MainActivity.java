@@ -6,7 +6,9 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final double SEA_LEVEL_PRESSURE_HPA = 1013.25;
     private static final double ALTITUDE_CONSTANT = 44330.0;
     private static final double EXPONENT = 0.1903;
-    private static final int STEP_HEIGHT = 100;
+    private static final int STEP_HEIGHT = 10;
     private SensorManager sensorManager;
     private Sensor pressureSensor;
     private double currentAltitude = 0.0;
@@ -33,6 +35,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         resultDisplay = findViewById(R.id.resultDisplay);
         calibrationTextField = findViewById(R.id.calibrationTextField);
+        calibrationTextField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                try {
+                    offset = Double.parseDouble(s.toString());
+                } catch (NumberFormatException e) {
+                    offset = 0.0;
+                }
+                updateDisplay();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
         addButton = findViewById(R.id.additionButton);
         subtractButton = findViewById(R.id.subtractButton);
 
