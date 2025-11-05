@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         if (pressureSensor != null) {
             sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            readPressureOnce();
         } else {
             Log.d("SensorCheck", "Kein Drucksensor");
         }
@@ -76,25 +75,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             updateDisplay();
         });
     }
-
-    private void readPressureOnce() {
-        SensorEventListener oneTimeListener = new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent event) {
-                float pressure = event.values[0];
-                currentAltitude = ALTITUDE_CONSTANT * (1.0 - Math.pow(pressure / SEA_LEVEL_PRESSURE_HPA, EXPONENT));
-                updateDisplay();
-                Log.d("InitialSensor", "Initial pressure: " + pressure);
-                sensorManager.unregisterListener(this);
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) { }
-        };
-
-        sensorManager.registerListener(oneTimeListener, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
 
     private void updateDisplay() {
         double displayAltitude = currentAltitude + offset;
