@@ -18,7 +18,7 @@
         android:autoSizeStepGranularity="2sp"
         android:autoSizeTextType="uniform"
         android:padding="8dp"
-        android:text="0.0 m"
+        android:text="Wird geladen..."
         android:textAlignment="center"
         android:textSize="64sp"
         app:layout_constraintEnd_toEndOf="parent"

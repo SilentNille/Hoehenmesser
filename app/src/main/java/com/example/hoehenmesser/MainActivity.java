@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView resultDisplay;
     private EditText calibrationTextField;
     private Button addButton, subtractButton;
+    private boolean hasSensorReading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +40,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         subtractButton = findViewById(R.id.subtractButton);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        if (pressureSensor != null) {
-            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            readPressureOnce();
-        } else {
+
+        if (pressureSensor == null) {
             Log.d("SensorCheck", "Kein Drucksensor");
+            resultDisplay.setText("Kein Drucksensor gefunden!");
         }
 
         calibrationTextField.addTextChangedListener(new TextWatcher() {
@@ -52,12 +52,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!TextUtils.isEmpty(s)) {
-                    try {
-                        offset = Double.parseDouble(s.toString());
-                        updateDisplay();
-                    } catch (NumberFormatException e) { }
+                if (TextUtils.isEmpty(s)) {
+                    offset = 0.0;
+                    updateDisplay();
+                    return;
                 }
+                try {
+                    offset = Double.parseDouble(s.toString());
+                    updateDisplay();
+                } catch (NumberFormatException e) {}
             }
 
             @Override
@@ -77,32 +80,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    private void readPressureOnce() {
-        SensorEventListener oneTimeListener = new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent event) {
-                float pressure = event.values[0];
-                currentAltitude = ALTITUDE_CONSTANT * (1.0 - Math.pow(pressure / SEA_LEVEL_PRESSURE_HPA, EXPONENT));
-                updateDisplay();
-                Log.d("InitialSensor", "Initial pressure: " + pressure);
-                sensorManager.unregisterListener(this);
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) { }
-        };
-
-        sensorManager.registerListener(oneTimeListener, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-
     private void updateDisplay() {
+        if (!hasSensorReading) {
+            return;
+        }
         double displayAltitude = currentAltitude + offset;
         resultDisplay.setText(String.format("%.1f m", displayAltitude));
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        hasSensorReading = true;
         float pressure = event.values[0];
         currentAltitude = ALTITUDE_CONSTANT * (1.0 - Math.pow(pressure / SEA_LEVEL_PRESSURE_HPA, EXPONENT));
         updateDisplay();
@@ -116,7 +104,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if (pressureSensor != null) {
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     @Override
