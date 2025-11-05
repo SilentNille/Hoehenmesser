@@ -38,17 +38,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         calibrationTextField = findViewById(R.id.calibrationTextField);
         addButton = findViewById(R.id.additionButton);
         subtractButton = findViewById(R.id.subtractButton);
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-
         if (pressureSensor == null) {
             Log.d("SensorCheck", "Kein Drucksensor");
             resultDisplay.setText("Kein Drucksensor gefunden!");
+        }else {
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
         calibrationTextField.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -60,11 +63,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 try {
                     offset = Double.parseDouble(s.toString());
                     updateDisplay();
-                } catch (NumberFormatException e) {}
+                } catch (NumberFormatException e) {
+                }
             }
 
             @Override
-            public void afterTextChanged(Editable s) { }
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         addButton.setOnClickListener(v -> {
@@ -97,9 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     @Override
     protected void onResume() {
