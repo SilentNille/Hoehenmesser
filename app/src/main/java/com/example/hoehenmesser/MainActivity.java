@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -32,53 +33,47 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         resultDisplay = findViewById(R.id.resultDisplay);
         calibrationTextField = findViewById(R.id.calibrationTextField);
+        addButton = findViewById(R.id.additionButton);
+        subtractButton = findViewById(R.id.subtractButton);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        if (pressureSensor != null) {
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            Log.d("SensorCheck", "Kein Drucksensor");
+        }
+
         calibrationTextField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                try {
-                    offset = Double.parseDouble(s.toString());
-                } catch (NumberFormatException e) {
-                    offset = 0.0;
+                if (!TextUtils.isEmpty(s)) {
+                    try {
+                        offset = Double.parseDouble(s.toString());
+                        updateDisplay();
+                    } catch (NumberFormatException e) { }
                 }
-                updateDisplay();
             }
 
             @Override
             public void afterTextChanged(Editable s) { }
         });
 
-        addButton = findViewById(R.id.additionButton);
-        subtractButton = findViewById(R.id.subtractButton);
+        addButton.setOnClickListener(v -> {
+            offset += STEP_HEIGHT;
+            calibrationTextField.setText(String.valueOf(offset));
+            updateDisplay();
+        });
 
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-
-        if (pressureSensor != null) {
-            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        addButton.setOnClickListener(v -> adjustOffset(STEP_HEIGHT));
-        subtractButton.setOnClickListener(v -> adjustOffset(-STEP_HEIGHT));
-    }
-
-    private void adjustOffset(int step) {
-        String input = calibrationTextField.getText().toString();
-        if (!TextUtils.isEmpty(input)) {
-            try {
-                offset = Double.parseDouble(input);
-            } catch (NumberFormatException e) {
-                offset = 0.0;
-            }
-        } else {
-            offset += step;
-        }
-        updateDisplay();
+        subtractButton.setOnClickListener(v -> {
+            offset -= STEP_HEIGHT;
+            calibrationTextField.setText(String.valueOf(offset));
+            updateDisplay();
+        });
     }
 
     private void updateDisplay() {
