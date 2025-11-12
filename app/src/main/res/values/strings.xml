@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Hoehenmesser</string>
+    <string name="preference_file_key">hoehenmesser</string>
+    <string name="preference_offset_key">offset</string>
 </resources>

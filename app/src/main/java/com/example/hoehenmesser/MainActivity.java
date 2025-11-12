@@ -1,6 +1,7 @@
 package com.example.hoehenmesser;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -29,7 +30,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private EditText calibrationTextField;
     private Button addButton, subtractButton;
     private boolean hasSensorReading = false;
-
+    private void loadOffsetFromStorage() {
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        offset = sharedPref.getFloat("offset", 0.0F);
+        calibrationTextField.setText(String.valueOf(offset));
+    }
+    private void saveOffsetInStorage(){
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putFloat(getString(R.string.preference_offset_key),(float) offset);
+        editor.apply();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         calibrationTextField = findViewById(R.id.calibrationTextField);
         addButton = findViewById(R.id.additionButton);
         subtractButton = findViewById(R.id.subtractButton);
+        loadOffsetFromStorage();
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
@@ -74,17 +88,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         addButton.setOnClickListener(v -> {
             offset += STEP_HEIGHT;
+            saveOffsetInStorage();
             calibrationTextField.setText(String.valueOf(offset));
             updateDisplay();
         });
 
         subtractButton.setOnClickListener(v -> {
             offset -= STEP_HEIGHT;
+            saveOffsetInStorage();
             calibrationTextField.setText(String.valueOf(offset));
             updateDisplay();
         });
     }
-
     private void updateDisplay() {
         if (!hasSensorReading) {
             return;
